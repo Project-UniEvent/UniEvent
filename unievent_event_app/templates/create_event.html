@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Event</title>
+</head>
+<body>
+    <h1>Create New Event</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label>Title: <input type="text" name="title"></label><br>
+        <label>Description: <textarea name="description"></textarea></label><br>
+        <label>Location: <input type="text" name="location"></label><br>
+        <label>Date: <input type="datetime-local" name="date"></label><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

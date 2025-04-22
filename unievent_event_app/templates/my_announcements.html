@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Announcements</title>
+</head>
+<body>
+    <h1>My Announcements</h1>
+    {% for announcement in announcements %}
+        <div>
+            <h3>{{ announcement.title }}</h3>
+            <p>{{ announcement.created_at }}</p>
+            <a href="{% url 'edit_announcement' announcement.id %}">Edit</a> |
+            <a href="{% url 'delete_announcement' announcement.id %}">Delete</a>
+        </div>
+        <hr>
+    {% endfor %}
+</body>
+</html>
