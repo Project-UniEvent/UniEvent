@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home - Unievent</title>
+</head>
+<body>
+    <h1>📅 Upcoming Events</h1>
+    {% for event in events %}
+        <div>
+            <h3>{{ event.title }}</h3>
+            <p><strong>Date:</strong> {{ event.date }}</p>
+            <p><strong>Location:</strong> {{ event.location }}</p>
+            <p>{{ event.description }}</p>
+            {% if user.is_authenticated and user.student %}
+                <a href="{% url 'register_event' event.id %}">Register</a>
+            {% endif %}
+        </div>
+        <hr>
+    {% endfor %}
+
+    <h1>📢 Announcements</h1>
+    {% for announcement in announcements %}
+        <div>
+            <h3>{{ announcement.title }}</h3>
+            <p><strong>Date:</strong> {{ announcement.created_at }}</p>
+            <p>{{ announcement.content }}</p>
+        </div>
+        <hr>
+    {% endfor %}
+</body>
+</html>
