@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Event, Announcement, Student
-from .models import SchoolClub, SchoolDepartment
-from .models import EventRegistration  # if you have it
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from .models import Event, Announcement
+from .models import EventRegistration
 
 # ✅ Helper function
 def is_club_or_department(user):
@@ -130,3 +131,27 @@ def delete_announcement(request, announcement_id):
     if announcement.created_by == request.user:
         announcement.delete()
     return redirect('my_announcements')
+
+# ✅ User login view
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'Welcome {user.username}!')
+            return redirect('home')  # Redirect to your homepage or dashboard
+        else:
+            messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'login.html')
+
+# ✅ User logout view
+@login_required
+def user_logout(request):
+    logout(request)
+    messages.info(request, 'You have been logged out.')
+    return render(request, 'logout.html')  # or redirect('login')

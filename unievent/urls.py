@@ -21,7 +21,10 @@ from unievent_event_app import views
 urlpatterns = [
     # Home page
     path('', views.home_page, name='home'),
+
+	# Admin page
 	path('admin/', admin.site.urls),
+
     # Event registration (for Students)
     path('event/<int:event_id>/register/', views.register_to_event, name='register_event'),
 
@@ -36,4 +39,10 @@ urlpatterns = [
     path('announcements/', views.my_announcements, name='my_announcements'),
     path('announcements/<int:announcement_id>/edit/', views.update_announcement, name='edit_announcement'),
     path('announcements/<int:announcement_id>/delete/', views.delete_announcement, name='delete_announcement'),
+
+	# Login page
+	path('login/', views.user_login, name='login'),
+
+	# Logout page
+	path('logout/', views.user_logout, name='logout'),
 ]

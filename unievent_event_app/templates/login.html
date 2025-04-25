@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Univent</title>
+</head>
+<body>
+    <h1>Login to Univent</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color: red;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <label>Username:</label><br>
+        <input type="text" name="username" placeholder="Enter your username" required><br><br>
+
+        <label>Password:</label><br>
+        <input type="password" name="password" placeholder="Enter your password" required><br><br>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <p>Don't have an account? Contact your school admin.</p>
+</body>
+</html>
