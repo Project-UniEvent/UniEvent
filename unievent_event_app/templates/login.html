@@ -1,29 +1,105 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login - Univent</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - UniEvent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .login-container {
+      max-width: 400px;
+      margin: 5rem auto;
+      padding: 2rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .login-logo {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    .login-button {
+      background-color: #8274FF;
+      border: none;
+      width: 100%;
+    }
+    .login-button:hover {
+      background-color: #6d60dd;
+    }
+  </style>
 </head>
 <body>
-    <h1>Login to Univent</h1>
 
-    {% if messages %}
-        {% for message in messages %}
-            <p style="color: red;">{{ message }}</p>
-        {% endfor %}
-    {% endif %}
+<div class="login-container">
+  <img src="{% static 'images/unievent_logo.jpg' %}" alt="UniEvent Logo" class="login-logo">
+  <h2 class="mb-4">UniEvent</h2>
 
-    <form method="post">
-        {% csrf_token %}
-        <label>Username:</label><br>
-        <input type="text" name="username" placeholder="Enter your username" required><br><br>
+  {% if request.GET.logout %}
+    <div class="alert alert-success" id="logout-alert" role="alert">
+      You have successfully logged out.
+    </div>
+  {% endif %}
 
-        <label>Password:</label><br>
-        <input type="password" name="password" placeholder="Enter your password" required><br><br>
+  {% if form.errors %}
+    <div class="alert alert-danger mt-3" id="error-alert">
+      Invalid username or password.
+    </div>
+  {% endif %}
 
-        <button type="submit">Login</button>
-    </form>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3 text-start">
+      <label for="id_username" class="form-label">Username</label>
+      <input type="text" name="username" autofocus required id="id_username" class="form-control">
+    </div>
+    <div class="mb-3 text-start">
+      <label for="id_password" class="form-label">Password</label>
+      <input type="password" name="password" required id="id_password" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary login-button mt-3">Log In</button>
+  </form>
 
-    <p>Don't have an account? Contact your school admin.</p>
+  <div class="mt-3">
+    <a href="/">← Back to Home</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+	setTimeout(function() {
+	var alert = document.getElementById('logout-alert');
+	if (alert) {
+		alert.style.transition = 'opacity 0.5s ease';
+		alert.style.opacity = '0';
+		setTimeout(function() {
+			alert.style.display = 'none';
+		}, 500);
+	}
+	}, 3000);
+
+	setTimeout(function() {
+	var error = document.getElementById('error-alert');
+	if (error) {
+		error.style.transition = 'opacity 0.5s ease';
+		error.style.opacity = '0';
+		setTimeout(function() {
+			error.style.display = 'none';
+		}, 500);
+	}
+	}, 4000);
+
+	if (window.location.search.includes('logout=1')) {
+  	  const newUrl = window.location.origin + window.location.pathname;
+  	  window.history.replaceState({}, document.title, newUrl);
+}
+</script>
+  
 </body>
 </html>
