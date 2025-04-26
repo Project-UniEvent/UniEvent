@@ -1,13 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Event, Announcement, Student
-from .models import SchoolClub, SchoolDepartment, EventRegistration
+from .models import Event, Announcement, EventRegistration
 
-# ✅ Helper function
+# Helper function
 def is_club_or_department(user):
     return hasattr(user, 'schoolclub') or hasattr(user, 'schooldepartment')
 
-# ✅ Home page (everyone sees all events and announcements)
+# Home page (everyone sees all events and announcements)
 def home_page(request):
     events = Event.objects.all().order_by('date')
     announcements = Announcement.objects.all().order_by('-created_at')
@@ -16,7 +15,7 @@ def home_page(request):
         'announcements': announcements,
     })
 
-# ✅ Student event registration
+# Student event registration
 @login_required
 def register_to_event(request, event_id):
     if not hasattr(request.user, 'student'):
@@ -30,7 +29,7 @@ def register_to_event(request, event_id):
 
     return redirect('home')
 
-# ✅ Create Event (for SchoolClub and SchoolDepartment)
+# Create Event (for SchoolClub and SchoolDepartment)
 @login_required
 def create_event(request):
     if not is_club_or_department(request.user):
@@ -48,7 +47,7 @@ def create_event(request):
 
     return render(request, 'create_event.html')
 
-# ✅ View own events
+# View own events
 @login_required
 def my_events(request):
     if not is_club_or_department(request.user):
@@ -57,7 +56,7 @@ def my_events(request):
     events = Event.objects.filter(created_by=request.user)
     return render(request, 'my_events.html', {'events': events})
 
-# ✅ Edit event (only if owner)
+# Edit event (only if owner)
 @login_required
 def update_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
@@ -74,7 +73,7 @@ def update_event(request, event_id):
 
     return render(request, 'edit_event.html', {'event': event})
 
-# ✅ Delete event (only if owner)
+# Delete event (only if owner)
 @login_required
 def delete_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
@@ -82,7 +81,7 @@ def delete_event(request, event_id):
         event.delete()
     return redirect('my_events')
 
-# ✅ Create Announcement
+# Create Announcement
 @login_required
 def create_announcement(request):
     if not is_club_or_department(request.user):
@@ -98,7 +97,7 @@ def create_announcement(request):
 
     return render(request, 'create_announcement.html')
 
-# ✅ View own announcements
+# View own announcements
 @login_required
 def my_announcements(request):
     if not is_club_or_department(request.user):
@@ -107,7 +106,7 @@ def my_announcements(request):
     announcements = Announcement.objects.filter(created_by=request.user)
     return render(request, 'my_announcements.html', {'announcements': announcements})
 
-# ✅ Edit announcement
+# Edit announcement
 @login_required
 def update_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
@@ -122,7 +121,7 @@ def update_announcement(request, announcement_id):
 
     return render(request, 'edit_announcement.html', {'announcement': announcement})
 
-# ✅ Delete announcement
+# Delete announcement
 @login_required
 def delete_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
@@ -130,7 +129,7 @@ def delete_announcement(request, announcement_id):
         announcement.delete()
     return redirect('my_announcements')
 
-# ✅ Profile View
+# Profile View
 @login_required
 def profile_view(request):
     registrations = EventRegistration.objects.filter(student__user=request.user)
