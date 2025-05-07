@@ -2,89 +2,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - UniEvent</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .navbar-custom {
-            background-color: #8274FF !important;
-        }
-        .navbar-custom .navbar-brand {
-            color: white !important;
-            margin-left: 10px;
-        }
-        .navbar-custom .navbar-brand img {
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>User Profile - UniEvent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .navbar-custom { background-color: #8274FF !important; }
+    .navbar-custom .navbar-brand { color: white !important; margin-left: 10px; }
+    .navbar-custom .navbar-brand img { border-radius: 8px; }
+    .purple-underline {
+      border-bottom: 3px solid #8274FF;
+      display: inline-block;
+      padding-bottom: 4px;
+      margin-bottom: 20px;
+    }
+    .btn-glow {
+      background-color: #8274FF;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .btn-glow:hover {
+      background-color: #5e51d6;
+    }
+    .btn-darkened {
+      background-color: #ccc;
+      color: #333;
+      pointer-events: auto;
+    }
+    .event-link {
+      text-decoration: none;
+      font-weight: bold;
+      color: #333;
+    }
+    .event-link:hover {
+      color: #5e51d6;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Top Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
-    <form class="d-flex mx-auto w-50">
-      <input class="form-control me-2" type="search" placeholder="Search...">
-      <button class="btn btn-outline-light" type="submit">🔍</button>
-    </form>
     <div class="d-flex align-items-center">
-      <a href="#" class="me-3 text-white">🔔</a>  <!-- 🔔 Notification simgesi -->
-
-      {% if user.is_authenticated %}
-        <a href="/profile/" class="me-3 text-white">👤</a>
-        <span class="text-white fw-bold">{{ user.username }}</span>  <!-- sadece yazı -->
-      {% else %}
-        <a href="/accounts/login/" class="me-3 text-white">👤</a>
-        <a class="btn btn-outline-light" href="/accounts/login/">Log in</a>
-      {% endif %}
+      <a href="/profile/" class="me-3 text-white">👤</a>
+      <span class="text-white fw-bold">{{ user.username }}</span>
     </div>
   </div>
 </nav>
 
-<!-- Profile Content -->
 <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">My Profile</h2>
-        {% if user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-          {% csrf_token %}
-          <button class="btn btn-danger" type="submit">Log Out</button>
-        </form>
-        {% endif %}
+  <!-- Logout -->
+  <div class="d-flex justify-content-end mb-3">
+    <form action="{% url 'logout' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Log Out</button>
+    </form>
+  </div>
+
+  {% if user.groups.all.0.name == "Student" %}
+    <h2 class="purple-underline">My Profile</h2>
+
+    <h4>Registered Events</h4>
+    <ul class="list-group mb-4">
+      {% if registrations %}
+        {% for reg in registrations %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'register_event' reg.event.id %}" class="event-link">
+            {{ reg.event.title }}
+          </a>
+          <form method="get" action="{% url 'register_event' reg.event.id %}" class="ms-3">
+            <input type="hidden" name="unregister" value="1">
+            <button type="submit" class="btn btn-darkened btn-sm">Unregister</button>
+          </form>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="list-group-item text-muted">You haven't registered for any events.</li>
+      {% endif %}
+    </ul>
+
+    <h4 class="mt-4">Followed Clubs</h4>
+    <ul class="list-group mb-4">
+      {% if followed_clubs %}
+        {% for club in followed_clubs %}
+          <li class="list-group-item">{{ club.username }}</li>
+        {% endfor %}
+      {% else %}
+        <li class="list-group-item text-muted">You are not following any clubs.</li>
+      {% endif %}
+    </ul>
+
+  {% elif user.groups.all.0.name == "SchoolClub" or user.groups.all.0.name == "SchoolDepartment" %}
+    <h3 class="purple-underline">{{ user.groups.all.0.name }} Dashboard</h3>
+
+    <!-- Create Buttons -->
+    <div class="mb-3 d-flex gap-2">
+      <a href="{% url 'create_event' %}" class="btn btn-sm btn-success">➕ Create Event</a>
+      <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-primary">➕ Create Announcement</a>
     </div>
 
-    <!-- Followed Clubs -->
-    <h4>Followed Clubs</h4>
+    <h5>Created Events</h5>
     <ul class="list-group mb-4">
-        {% if user.schoolclub %}
-            <li class="list-group-item">{{ user.schoolclub.club_name }}</li>
-        {% else %}
-            <li class="list-group-item text-muted">You are not following any clubs.</li>
-        {% endif %}
+      {% for event in user.event_set.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ event.title }}</strong><br>
+            <small>{{ event.date|date:"F j, Y, g:i a" }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_event' event.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No events created yet.</li>
+      {% endfor %}
     </ul>
 
-    <!-- Registered Events -->
-    <h4>Registered Events</h4>
+    <h5>Created Announcements</h5>
     <ul class="list-group">
-        {% if registrations %}
-            {% for reg in registrations %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                        <strong>{{ reg.event.title }}</strong><br>
-                        <small>{{ reg.event.date|date:"F j, Y, g:i a" }}</small>
-                    </span>
-                    <span class="badge bg-primary rounded-pill">Registered</span>
-                </li>
-            {% endfor %}
-        {% else %}
-            <li class="list-group-item text-muted">You haven't registered for any events.</li>
-        {% endif %}
+      {% for announcement in user.announcement_set.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ announcement.title }}</strong><br>
+            <small>{{ announcement.created_at|date:"F j, Y" }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_announcement' announcement.id %}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_announcement' announcement.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No announcements created yet.</li>
+      {% endfor %}
     </ul>
+  {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

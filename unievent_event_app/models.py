@@ -31,3 +31,16 @@ class EventRegistration(models.Model):
             ("can_register_event", "Can register for events"),
         ]
 
+class ClubRegistration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    club = models.ForeignKey(User, on_delete=models.CASCADE, related_name="club_followers")
+    followed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'club')
+        permissions = [
+            ("can_follow_club", "Can follow school clubs"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} follows {self.club.username}"

@@ -1,0 +1,7 @@
+<h2>Edit Announcement</h2>
+<form method="post">
+  {% csrf_token %}
+  <p><label>Title:</label> <input type="text" name="title" value="{{ announcement.title }}" required></p>
+  <p><label>Content:</label> <textarea name="content" required>{{ announcement.content }}</textarea></p>
+  <button type="submit">Save Changes</button>
+</form>

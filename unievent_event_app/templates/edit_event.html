@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Event</title>
-</head>
-<body>
-    <h1>Edit Event</h1>
-    <form method="post">
-        {% csrf_token %}
-        <label>Title: <input type="text" name="title" value="{{ event.title }}"></label><br>
-        <label>Description: <textarea name="description">{{ event.description }}</textarea></label><br>
-        <label>Location: <input type="text" name="location" value="{{ event.location }}"></label><br>
-        <label>Date: <input type="datetime-local" name="date" value="{{ event.date|date:'Y-m-d\\TH:i' }}"></label><br>
-        <button type="submit">Update</button>
-    </form>
-</body>
-</html>
+<h2>Edit Event</h2>
+<form method="post">
+  {% csrf_token %}
+  <p><label>Title:</label> <input type="text" name="title" value="{{ event.title }}" required></p>
+  <p><label>Description:</label> <textarea name="description" required>{{ event.description }}</textarea></p>
+  <p><label>Location:</label> <input type="text" name="location" value="{{ event.location }}" required></p>
+  <p><label>Date:</label> <input type="datetime-local" name="date" value="{{ event.date|date:'Y-m-d\\TH:i' }}" required></p>
+  <button type="submit">Save Changes</button>
+</form>

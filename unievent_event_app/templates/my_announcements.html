@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Announcements</title>
-</head>
-<body>
-    <h1>My Announcements</h1>
-    {% for announcement in announcements %}
-        <div>
-            <h3>{{ announcement.title }}</h3>
-            <p>{{ announcement.created_at }}</p>
-            <a href="{% url 'edit_announcement' announcement.id %}">Edit</a> |
-            <a href="{% url 'delete_announcement' announcement.id %}">Delete</a>
-        </div>
-        <hr>
-    {% endfor %}
-</body>
-</html>
+<h2>My Announcements</h2>
+<a href="{% url 'create_announcement' %}">+ Create New Announcement</a>
+<ul>
+  {% for ann in announcements %}
+    <li>
+      <strong>{{ ann.title }}</strong>
+      <a href="{% url 'edit_announcement' ann.id %}">Edit</a>
+      <form method="post" action="{% url 'delete_announcement' ann.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>You have not created any announcements.</li>
+  {% endfor %}
+</ul>

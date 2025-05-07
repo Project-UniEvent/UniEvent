@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ event.title }} - UniEvent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .btn-toggle-register {
+      transition: background-color 0.3s ease;
+    }
+  </style>
+</head>
+<body class="container mt-5">
+  <h2 class="mb-3">{{ event.title }}</h2>
+
+  <p><strong>Date:</strong> {{ event.date|date:"F j, Y, g:i a" }}</p>
+  <p><strong>Location:</strong> {{ event.location }}</p>
+  <p><strong>Description:</strong></p>
+  <p>{{ event.description }}</p>
+
+  {% if user.is_authenticated and user.groups.all.0.name == "Student" %}
+    <form method="get">
+      {% if registered %}
+        <input type="hidden" name="unregister" value="1">
+        <button class="btn btn-secondary btn-toggle-register" type="submit">Unregister</button>
+        <p class="text-success mt-3">✅ You are registered for this event.</p>
+      {% else %}
+        <input type="hidden" name="register" value="1">
+        <button class="btn btn-success btn-toggle-register" type="submit">Register</button>
+      {% endif %}
+    </form>
+  {% endif %}
+
+  <a href="/" class="btn btn-outline-secondary mt-4">← Back to Home</a>
+</body>
+</html>

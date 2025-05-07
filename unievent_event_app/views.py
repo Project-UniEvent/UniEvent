@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
-from .models import Event, Announcement, EventRegistration
+from .models import Event, Announcement, EventRegistration, ClubRegistration
+from django.contrib.auth.models import Group
 
 # Helper function
 def is_club_or_department(user):
@@ -8,34 +9,44 @@ def is_club_or_department(user):
 
 # Home page (everyone sees all events and announcements)
 def home_page(request):
-    events = Event.objects.all().order_by('date')
-    announcements = Announcement.objects.all().order_by('-created_at')
-    return render(request, 'home.html', {
-        'events': events,
-        'announcements': announcements,
-    })
+    if request.user.is_authenticated:
+        event_ids = EventRegistration.objects.filter(user=request.user).values_list('event_id', flat=True)
+    else:
+        event_ids = []  # or leave it empty or show public events only
+
+    events = Event.objects.all()  # or only public events
+    return render(request, 'home.html', {'events': events, 'event_ids': event_ids})
+
+
 
 # Student event registration
+
 @login_required
 @permission_required('unievent_event_app.can_register_event', raise_exception=True)
 def register_to_event(request, event_id):
-    if not hasattr(request.user, 'student'):
-        return redirect('home')
-
-    student = request.user.student
     event = get_object_or_404(Event, id=event_id)
+    user = request.user
+    registered = EventRegistration.objects.filter(user=user, event=event).exists()
 
-    # Prevent duplicate registration
-    EventRegistration.objects.get_or_create(student=student, event=event)
+    if 'register' in request.GET and not registered:
+        EventRegistration.objects.create(user=user, event=event)
+        registered = True
+    elif 'unregister' in request.GET and registered:
+        EventRegistration.objects.filter(user=user, event=event).delete()
+        # redirect back to profile if from profile page
+        if request.META.get('HTTP_REFERER', '').endswith('/profile/'):
+            return redirect('profile')
+        registered = False
 
-    return redirect('home')
+    return render(request, 'event_register.html', {
+        'event': event,
+        'registered': registered,
+    })
 
 # Create Event (for SchoolClub and SchoolDepartment)
 @login_required
 @permission_required('unievent_event_app.add_event', raise_exception=True)
 def create_event(request):
-    if not is_club_or_department(request.user):
-        return redirect('home')
 
     if request.method == 'POST':
         Event.objects.create(
@@ -52,8 +63,6 @@ def create_event(request):
 # View own events
 @login_required
 def my_events(request):
-    if not is_club_or_department(request.user):
-        return redirect('home')
 
     events = Event.objects.filter(created_by=request.user)
     return render(request, 'my_events.html', {'events': events})
@@ -63,8 +72,6 @@ def my_events(request):
 @permission_required('unievent_event_app.change_event', raise_exception=True)
 def update_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    if event.created_by != request.user:
-        return redirect('home')
 
     if request.method == 'POST':
         event.title = request.POST['title']
@@ -89,8 +96,6 @@ def delete_event(request, event_id):
 @login_required
 @permission_required('unievent_event_app.add_announcement', raise_exception=True)
 def create_announcement(request):
-    if not is_club_or_department(request.user):
-        return redirect('home')
 
     if request.method == 'POST':
         Announcement.objects.create(
@@ -105,8 +110,6 @@ def create_announcement(request):
 # View own announcements
 @login_required
 def my_announcements(request):
-    if not is_club_or_department(request.user):
-        return redirect('home')
 
     announcements = Announcement.objects.filter(created_by=request.user)
     return render(request, 'my_announcements.html', {'announcements': announcements})
@@ -116,8 +119,6 @@ def my_announcements(request):
 @permission_required('unievent_event_app.change_announcement', raise_exception=True)
 def update_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
-    if announcement.created_by != request.user:
-        return redirect('home')
 
     if request.method == 'POST':
         announcement.title = request.POST['title']
@@ -129,7 +130,7 @@ def update_announcement(request, announcement_id):
 
 # Delete announcement
 @login_required
-@permission_required('unievent_event_app.delete_announcements', raise_exception=True)
+@permission_required('unievent_event_app.delete_announcement', raise_exception=True)
 def delete_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     if announcement.created_by == request.user:
@@ -137,9 +138,18 @@ def delete_announcement(request, announcement_id):
     return redirect('my_announcements')
 
 # Profile View
-@login_required
+# views.py
 def profile_view(request):
-    registrations = EventRegistration.objects.filter(student__user=request.user)
+    registrations = EventRegistration.objects.filter(user=request.user).select_related("event")
+
+    # Followed Clubs
+    club_regs = ClubRegistration.objects.filter(
+        user=request.user,
+        club__groups__name="SchoolClub"
+    ).select_related("club")
+    followed_clubs = [reg.club for reg in club_regs]
+
     return render(request, 'profile.html', {
-        'registrations': registrations
+        'registrations': registrations,
+        'followed_clubs': followed_clubs,
     })
