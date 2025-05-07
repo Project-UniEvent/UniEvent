@@ -87,6 +87,7 @@ def delete_event(request, event_id):
 
 # Create Announcement
 @login_required
+@permission_required('unievent_event_app.add_announcement', raise_exception=True)
 def create_announcement(request):
     if not is_club_or_department(request.user):
         return redirect('home')
@@ -112,6 +113,7 @@ def my_announcements(request):
 
 # Edit announcement
 @login_required
+@permission_required('unievent_event_app.change_announcement', raise_exception=True)
 def update_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     if announcement.created_by != request.user:
@@ -127,6 +129,7 @@ def update_announcement(request, announcement_id):
 
 # Delete announcement
 @login_required
+@permission_required('unievent_event_app.delete_announcements', raise_exception=True)
 def delete_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     if announcement.created_by == request.user:
