@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from .models import Event, Announcement, EventRegistration
 
 # Helper function
@@ -17,6 +17,7 @@ def home_page(request):
 
 # Student event registration
 @login_required
+@permission_required('unievent_event_app.can_register_event', raise_exception=True)
 def register_to_event(request, event_id):
     if not hasattr(request.user, 'student'):
         return redirect('home')
@@ -31,6 +32,7 @@ def register_to_event(request, event_id):
 
 # Create Event (for SchoolClub and SchoolDepartment)
 @login_required
+@permission_required('unievent_event_app.add_event', raise_exception=True)
 def create_event(request):
     if not is_club_or_department(request.user):
         return redirect('home')
@@ -58,6 +60,7 @@ def my_events(request):
 
 # Edit event (only if owner)
 @login_required
+@permission_required('unievent_event_app.change_event', raise_exception=True)
 def update_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     if event.created_by != request.user:
@@ -75,6 +78,7 @@ def update_event(request, event_id):
 
 # Delete event (only if owner)
 @login_required
+@permission_required('unievent_event_app.delete_event', raise_exception=True)
 def delete_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     if event.created_by == request.user:
