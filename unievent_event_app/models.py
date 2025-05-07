@@ -1,29 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Student: {self.user.username}"
-
-class SchoolClub(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    club_name = models.CharField(max_length=100)
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"School Club: {self.club_name}"
-
-class SchoolDepartment(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department_name = models.CharField(max_length=100)
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Department: {self.department_name}"
-
 class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -44,9 +21,26 @@ class Announcement(models.Model):
         return self.title
 
 class EventRegistration(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     registered_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('student', 'event')
+        unique_together = ('user', 'event')
+        permissions = [
+            ("can_register_event", "Can register for events"),
+        ]
+
+class ClubRegistration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    club = models.ForeignKey(User, on_delete=models.CASCADE, related_name="club_followers")
+    followed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'club')
+        permissions = [
+            ("can_follow_club", "Can follow school clubs"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} follows {self.club.username}"

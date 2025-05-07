@@ -43,12 +43,12 @@ ROOT_URLCONF = 'unievent.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # ✔️ templates klasörünü gösterdik
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # ✔️ user bilgisini almak için şart
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -85,7 +85,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Europe/Istanbul'  # ✔️ Türkiye saat dilimi yapıldı
+TIME_ZONE = 'Europe/Istanbul'
 
 USE_I18N = True
 
@@ -98,5 +98,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication redirects
-LOGIN_REDIRECT_URL = '/'           # ✔️ login olduktan sonra anasayfaya git
-LOGOUT_REDIRECT_URL = '/accounts/login/'  # ✔️ logout olduktan sonra login sayfasına git
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
