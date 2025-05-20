@@ -37,11 +37,16 @@
       color: #000;
     }
 
-    .btn-darkened {
-      background-color: #ccc;
-      color: #333;
-      pointer-events: auto;
+    .btn-unregister {
+      background-color: #c34444;
+      color: white;
+      border: none;
     }
+    .btn-unregister:hover {
+      background-color: #a83838;
+      color: white;
+    }
+
     .event-link {
       text-decoration: none;
       font-weight: bold;
@@ -100,7 +105,7 @@
           </a>
           <form method="get" action="{% url 'register_event' reg.event.id %}" class="ms-3">
             <input type="hidden" name="unregister" value="1">
-            <button type="submit" class="btn btn-darkened btn-sm">Unregister</button>
+            <button type="submit" class="btn btn-sm btn-unregister">Unregister</button>
           </form>
         </li>
         {% endfor %}
@@ -113,7 +118,10 @@
     <ul class="list-group mb-4">
       {% if followed_clubs %}
         {% for club in followed_clubs %}
-          <li class="list-group-item">{{ club.username }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ club.username }}
+          <a href="{% url 'unfollow_club' club.id %}" class="btn btn-sm btn-unregister">Leave Club</a>
+        </li>
         {% endfor %}
       {% else %}
         <li class="list-group-item text-muted">You are not following any clubs.</li>

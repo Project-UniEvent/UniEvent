@@ -5,7 +5,16 @@ class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     location = models.CharField(max_length=200)
-    date = models.DateTimeField()
+
+    start_datetime = models.DateTimeField()
+    end_datetime = models.DateTimeField(blank=True, null=True)
+
+    capacity = models.PositiveIntegerField(blank=True, null=True)
+    image = models.ImageField(upload_to='event_images/', blank=True, null=True)
+
+    is_paid = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

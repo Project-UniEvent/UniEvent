@@ -63,27 +63,71 @@
 <div class="container mt-5" style="max-width: 700px;">
   <h2 class="purple-underline">Edit Event</h2>
 
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
+    <!-- Title -->
     <div class="mb-3">
       <label class="form-label">Title</label>
-      <input type="text" name="title" class="form-control" value="{{ event.title }}" required>
+      <input type="text" name="title" class="form-control" value="{{ event.title }}" maxlength="100" required>
     </div>
 
+    <!-- Description -->
     <div class="mb-3">
       <label class="form-label">Description</label>
       <textarea name="description" class="form-control" rows="4" required>{{ event.description }}</textarea>
     </div>
 
+    <!-- Image -->
+    <div class="mb-3">
+      <label class="form-label">Change Event Image (optional)</label>
+      <input type="file" name="image" class="form-control">
+    </div>
+
+    <!-- Location -->
     <div class="mb-3">
       <label class="form-label">Location</label>
       <input type="text" name="location" class="form-control" value="{{ event.location }}" required>
     </div>
 
+    <!-- Start Date-Time -->
     <div class="mb-3">
-      <label class="form-label">Date</label>
-      <input type="datetime-local" name="date" class="form-control" value="{{ event.date|date:'Y-m-d\\TH:i' }}" required>
+      <label class="form-label">Start Date & Time</label>
+      <input type="datetime-local" name="start_datetime" class="form-control"
+             value="{{ event.start_datetime|date:'Y-m-d\\TH:i' }}" required>
+    </div>
+
+    <!-- End Date-Time -->
+    <div class="mb-3">
+      <label class="form-label">End Date & Time (optional)</label>
+      <input type="datetime-local" name="end_datetime" class="form-control"
+             value="{{ event.end_datetime|date:'Y-m-d\\TH:i' }}">
+    </div>
+
+    <!-- Capacity -->
+    <div class="mb-3">
+      <label class="form-label">Capacity (optional)</label>
+      <input type="number" name="capacity" class="form-control"
+             value="{{ event.capacity }}" min="1">
+    </div>
+
+    <!-- Is Paid -->
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" id="is_paid" name="is_paid"
+             {% if event.is_paid %}checked{% endif %}>
+      <label class="form-check-label" for="is_paid">Is this a paid event?</label>
+    </div>
+
+    <!-- Price -->
+    <div class="mb-3" id="price_section" style="display: none;">
+      <label class="form-label">Price (₺)</label>
+      <input type="number" step="0.01" name="price" class="form-control"
+             value="{{ event.price }}">
+    </div>
+
+    <!-- Free Event Text -->
+    <div class="mb-3 text-muted" id="free_text" style="display: none;">
+      This event is free of charge.
     </div>
 
     <button type="submit" class="btn btn-submit">💾 Save Changes</button>
@@ -93,5 +137,25 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  const isPaidCheckbox = document.getElementById('is_paid');
+  const priceSection = document.getElementById('price_section');
+  const freeText = document.getElementById('free_text');
+
+  function togglePriceField() {
+    if (isPaidCheckbox.checked) {
+      priceSection.style.display = 'block';
+      freeText.style.display = 'none';
+    } else {
+      priceSection.style.display = 'none';
+      freeText.style.display = 'block';
+    }
+  }
+
+  isPaidCheckbox.addEventListener('change', togglePriceField);
+  window.addEventListener('DOMContentLoaded', togglePriceField);
+</script>
+
 </body>
 </html>
