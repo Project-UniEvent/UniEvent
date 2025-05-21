@@ -244,3 +244,13 @@ def club_profile(request, club_id):
         'today': now.date(),
         'now': now,
     })
+
+def search_results(request):
+    query = request.GET.get('q', '').strip()
+    events = Event.objects.filter(title__icontains=query)
+    announcements = Announcement.objects.filter(title__icontains=query)
+    return render(request, 'search.html', {
+        'search_query': query,
+        'events': events,
+        'announcements': announcements,
+    })

@@ -65,8 +65,8 @@
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
-    <form class="d-flex mx-auto w-50">
-      <input class="form-control me-2" type="search" placeholder="Search...">
+    <form class="d-flex mx-auto w-50" method="get" action="{% url 'search_results' %}">
+      <input class="form-control me-2" type="search" name="q" placeholder="Search...">
       <button class="btn btn-outline-light" type="submit">🔍</button>
     </form>
     <div class="d-flex align-items-center">
