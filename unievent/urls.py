@@ -38,7 +38,14 @@ urlpatterns = [
     path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/?logout=1'), name='logout'),
 
+	# Search
 	path('search/', views.search_results, name='search_results'),
+    
+	# Custom Admin Page
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/create-user/', views.create_user, name='create_user'),
+    path('admin-dashboard/edit/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('admin-dashboard/delete/<int:user_id>/', views.delete_user, name='delete_user'),
 ]
 
 if settings.DEBUG:

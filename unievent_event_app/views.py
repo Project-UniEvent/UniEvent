@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from .models import Event, Announcement, EventRegistration, ClubRegistration
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
 
 # Helper function
 def is_club_or_department(user):
@@ -159,7 +161,7 @@ def delete_announcement(request, announcement_id):
 # Profile View
 def profile_view(request):
     if request.user.is_staff:
-        return redirect('/admin/')
+        return redirect('admin_dashboard')
     registrations = EventRegistration.objects.filter(user=request.user).select_related("event")
     club_regs = ClubRegistration.objects.filter(
         user=request.user,
@@ -254,3 +256,46 @@ def search_results(request):
         'events': events,
         'announcements': announcements,
     })
+
+@user_passes_test(lambda u: u.is_staff)
+def admin_dashboard(request):
+    users = User.objects.all()
+    groups = Group.objects.all()
+    return render(request, 'admin_dashboard.html', {'users': users, 'groups': groups})
+
+@user_passes_test(lambda u: u.is_staff)
+def create_user(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        group_name = request.POST.get('group')
+        user = User.objects.create_user(username=username, password=password)
+        if group_name:
+            group = Group.objects.get(name=group_name)
+            user.groups.add(group)
+        messages.success(request, f"User '{username}' created.")
+    return redirect('admin_dashboard')
+
+@user_passes_test(lambda u: u.is_staff)
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    groups = Group.objects.all()
+    if request.method == 'POST':
+        group_name = request.POST.get('group')
+        user.groups.clear()
+        if group_name:
+            group = Group.objects.get(name=group_name)
+            user.groups.add(group)
+        messages.success(request, f"User '{user.username}' updated.")
+        return redirect('admin_dashboard')
+    return render(request, 'edit_user.html', {'user': user, 'groups': groups})
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user.is_superuser:
+        messages.error(request, "You cannot delete a superuser.")
+    else:
+        user.delete()
+        messages.success(request, f"User '{user.username}' deleted.")
+    return redirect('admin_dashboard')
