@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         groups = {
             "Student": [
-                "can_register_event"
+                "can_register_event", "can_follow_club"
             ],
             "SchoolClub": [
                 "add_event", "change_event", "delete_event",

@@ -9,25 +9,44 @@
     .navbar-custom { background-color: #8274FF !important; }
     .navbar-custom .navbar-brand { color: white !important; margin-left: 10px; }
     .navbar-custom .navbar-brand img { border-radius: 8px; }
+
     .purple-underline {
       border-bottom: 3px solid #8274FF;
       display: inline-block;
       padding-bottom: 4px;
       margin-bottom: 20px;
     }
-    .btn-glow {
-      background-color: #8274FF;
+
+    .btn-schoolclub {
+      background-color: #8DCDEE;
+      color: #000;
+      border: none;
+    }
+    .btn-schoolclub:hover {
+      background-color: #70b6d8;
+      color: #000;
+    }
+
+    .btn-schooldepartment {
+      background-color: #8DCDEE;
+      color: #000;
+      border: none;
+    }
+    .btn-schooldepartment:hover {
+      background-color: #70b6d8;
+      color: #000;
+    }
+
+    .btn-unregister {
+      background-color: #c34444;
       color: white;
-      transition: background-color 0.3s ease;
+      border: none;
     }
-    .btn-glow:hover {
-      background-color: #5e51d6;
+    .btn-unregister:hover {
+      background-color: #a83838;
+      color: white;
     }
-    .btn-darkened {
-      background-color: #ccc;
-      color: #333;
-      pointer-events: auto;
-    }
+
     .event-link {
       text-decoration: none;
       font-weight: bold;
@@ -47,9 +66,19 @@
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
+    <form class="d-flex mx-auto w-50">
+      <input class="form-control me-2" type="search" placeholder="Search...">
+      <button class="btn btn-outline-light" type="submit">🔍</button>
+    </form>
     <div class="d-flex align-items-center">
-      <a href="/profile/" class="me-3 text-white">👤</a>
-      <span class="text-white fw-bold">{{ user.username }}</span>
+      <a href="#" class="me-3 text-white">🔔</a>
+      {% if user.is_authenticated %}
+        <a href="/profile/" class="me-3 text-white">👤</a>
+        <span class="text-white fw-bold">{{ user.username }}</span>
+      {% else %}
+        <a href="/accounts/login/" class="me-3 text-white">👤</a>
+        <a class="btn btn-outline-light" href="/accounts/login/">Log in</a>
+      {% endif %}
     </div>
   </div>
 </nav>
@@ -76,7 +105,7 @@
           </a>
           <form method="get" action="{% url 'register_event' reg.event.id %}" class="ms-3">
             <input type="hidden" name="unregister" value="1">
-            <button type="submit" class="btn btn-darkened btn-sm">Unregister</button>
+            <button type="submit" class="btn btn-sm btn-unregister">Unregister</button>
           </form>
         </li>
         {% endfor %}
@@ -89,7 +118,10 @@
     <ul class="list-group mb-4">
       {% if followed_clubs %}
         {% for club in followed_clubs %}
-          <li class="list-group-item">{{ club.username }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ club.username }}
+          <a href="{% url 'unfollow_club' club.id %}" class="btn btn-sm btn-unregister">Leave Club</a>
+        </li>
         {% endfor %}
       {% else %}
         <li class="list-group-item text-muted">You are not following any clubs.</li>
@@ -101,8 +133,13 @@
 
     <!-- Create Buttons -->
     <div class="mb-3 d-flex gap-2">
-      <a href="{% url 'create_event' %}" class="btn btn-sm btn-success">➕ Create Event</a>
-      <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-primary">➕ Create Announcement</a>
+      {% if user.groups.all.0.name == "SchoolClub" %}
+        <a href="{% url 'create_event' %}" class="btn btn-sm btn-schoolclub">➕ Create Event</a>
+        <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-schoolclub">➕ Create Announcement</a>
+      {% else %}
+        <a href="{% url 'create_event' %}" class="btn btn-sm btn-schooldepartment">➕ Create Event</a>
+        <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-schooldepartment">➕ Create Announcement</a>
+      {% endif %}
     </div>
 
     <h5>Created Events</h5>
