@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from .models import Event, Announcement, EventRegistration, ClubRegistration
+from .forms import StudentCreationForm, ClubCreationForm, DepartmentCreationForm
+from django.db.models import Q
 
 # Helper function
 def is_club_or_department(user):
@@ -28,7 +30,7 @@ def home_page(request):
         .order_by('-registration_count', '-start_datetime')[:5]
     )
 
-    announcements = Announcement.objects.all().order_by('-created_at')
+    announcements = Announcement.objects.all().order_by('-created_at')[:5]
 
     return render(request, 'home.html', {
         'events': todays_events,
@@ -157,6 +159,7 @@ def delete_announcement(request, announcement_id):
     return redirect('profile')
 
 # Profile View
+@login_required
 def profile_view(request):
     registrations = EventRegistration.objects.filter(user=request.user).select_related("event")
     club_regs = ClubRegistration.objects.filter(
@@ -165,9 +168,46 @@ def profile_view(request):
     ).select_related("club")
     followed_clubs = [reg.club for reg in club_regs]
 
-    return render(request, 'profile.html', {
+    context = {
         'registrations': registrations,
         'followed_clubs': followed_clubs,
+    }
+
+    if request.user.is_superuser:
+        students = User.objects.filter(groups__name="Student")
+        clubs = User.objects.filter(groups__name="SchoolClub")
+        departments = User.objects.filter(groups__name="SchoolDepartment")
+        context.update({
+            'all_students': students,
+            'all_clubs': clubs,
+            'all_departments': departments,
+        })
+
+    return render(request, 'profile.html', context)
+
+# Yeni View: Add User (Admin Paneli)
+@login_required
+def add_user_view(request):
+    if not request.user.is_superuser:
+        return redirect('home')
+
+    role = request.GET.get('role', 'student')  # default student
+
+    form_class = {
+        'student': StudentCreationForm,
+        'club': ClubCreationForm,
+        'department': DepartmentCreationForm,
+    }.get(role, StudentCreationForm)
+
+    form = form_class(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('profile')
+
+    return render(request, 'add_user.html', {
+        'form': form,
+        'selected_role': role,
     })
 
 # All Events View
@@ -208,20 +248,20 @@ def all_clubs(request):
 def follow_club(request, club_id):
     if not request.user.groups.filter(name="Student").exists():
         return render(request, 'not_allowed.html', {
-            'message': "Only students can follow clubs."
+            'message': "Only students can join (follow) clubs."
         })
     ClubRegistration.objects.get_or_create(user=request.user, club_id=club_id)
-    return redirect('all_clubs')
+    return redirect(request.META.get('HTTP_REFERER', 'all_clubs'))
 
 # Unfollow Club
 @login_required
 def unfollow_club(request, club_id):
     if not request.user.groups.filter(name="Student").exists():
         return render(request, 'not_allowed.html', {
-            'message': "Only students can unfollow clubs."
+            'message': "Only students can leave (unfollow) clubs."
         })
     ClubRegistration.objects.filter(user=request.user, club_id=club_id).delete()
-    return redirect('all_clubs')
+    return redirect(request.META.get('HTTP_REFERER', 'all_clubs'))
 
 # Club Profile
 def club_profile(request, club_id):
@@ -242,3 +282,72 @@ def club_profile(request, club_id):
         'today': now.date(),
         'now': now,
     })
+
+# Search
+def search_view(request):
+    query = request.GET.get('q', '').strip()
+
+    if not query:
+        return redirect('home')
+
+    # Event, Announcement ve Club için arama
+    event_results = Event.objects.filter(
+        Q(title__icontains=query) | Q(description__icontains=query)
+    )
+
+    announcement_results = Announcement.objects.filter(
+        Q(title__icontains=query) | Q(content__icontains=query)
+    )
+
+    club_results = User.objects.filter(
+        groups__name="SchoolClub",
+        username__icontains=query
+    )
+
+    # Kullanıcının kayıtlı olduğu etkinliklerin ID'leri
+    event_ids = []
+    if request.user.is_authenticated:
+        event_ids = EventRegistration.objects.filter(user=request.user).values_list('event_id', flat=True)
+
+    # Eğer kullanıcı öğrenciyse takip ettiği kulüplerin ID'leri
+    followed_ids = []
+    if request.user.is_authenticated and request.user.groups.filter(name="Student").exists():
+        followed_ids = ClubRegistration.objects.filter(user=request.user).values_list("club_id", flat=True)
+
+    return render(request, 'search_results.html', {
+        'query': query,
+        'event_results': event_results,
+        'announcement_results': announcement_results,
+        'club_results': club_results,
+        'event_ids': event_ids,
+        'followed_ids': followed_ids,
+        'now': timezone.now(),
+    })
+
+# Delete User
+@login_required
+def delete_user(request, user_id):
+    if not request.user.is_superuser:
+        return redirect('home')
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        user.delete()
+        return redirect('profile')
+    return redirect('profile')
+
+# Edit User
+@login_required
+def edit_user(request, user_id):
+    if not request.user.is_superuser:
+        return redirect('home')
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        user.username = request.POST.get('username')
+        user.email = request.POST.get('email')
+        user.save()
+        return redirect('profile')
+
+    return render(request, 'edit_user.html', {'edit_user': user})
+

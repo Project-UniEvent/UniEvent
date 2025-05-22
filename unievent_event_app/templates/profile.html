@@ -17,23 +17,13 @@
       margin-bottom: 20px;
     }
 
-    .btn-schoolclub {
+    .btn-theme-blue {
       background-color: #8DCDEE;
       color: #000;
       border: none;
     }
-    .btn-schoolclub:hover {
-      background-color: #70b6d8;
-      color: #000;
-    }
-
-    .btn-schooldepartment {
+    .btn-theme-blue:hover {
       background-color: #8DCDEE;
-      color: #000;
-      border: none;
-    }
-    .btn-schooldepartment:hover {
-      background-color: #70b6d8;
       color: #000;
     }
 
@@ -66,8 +56,8 @@
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
-    <form class="d-flex mx-auto w-50">
-      <input class="form-control me-2" type="search" placeholder="Search...">
+    <form method="get" action="{% url 'search' %}" class="d-flex mx-auto w-50">
+      <input name="q" class="form-control me-2" type="search" placeholder="Search..." required>
       <button class="btn btn-outline-light" type="submit">🔍</button>
     </form>
     <div class="d-flex align-items-center">
@@ -84,13 +74,92 @@
 </nav>
 
 <div class="container mt-5">
-  <!-- Logout -->
   <div class="d-flex justify-content-end mb-3">
     <form action="{% url 'logout' %}" method="post">
       {% csrf_token %}
       <button class="btn btn-danger" type="submit">Log Out</button>
     </form>
   </div>
+
+  {% if user.is_superuser %}
+    <h2 class="purple-underline">Admin Dashboard</h2>
+
+    <div class="mb-4">
+      <a href="{% url 'add_user' %}" class="btn btn-theme-blue">➕ Add User</a>
+    </div>
+
+    <h5>Students</h5>
+    <ul class="list-group mb-4">
+      {% for student in all_students %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ student.username }}</strong><br>
+            <small>{{ student.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' student.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' student.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ student.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No students.</li>
+      {% endfor %}
+    </ul>
+
+    <h5>Student Clubs</h5>
+    <ul class="list-group mb-4">
+      {% for club in all_clubs %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ club.username }}</strong><br>
+            <small>{{ club.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' club.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' club.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ club.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No clubs.</li>
+      {% endfor %}
+    </ul>
+
+    <h5>School Departments</h5>
+    <ul class="list-group mb-4">
+      {% for dept in all_departments %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ dept.username }}</strong><br>
+            <small>{{ dept.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' dept.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' dept.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ dept.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No departments.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 
   {% if user.groups.all.0.name == "Student" %}
     <h2 class="purple-underline">My Profile</h2>
@@ -127,19 +196,14 @@
         <li class="list-group-item text-muted">You are not following any clubs.</li>
       {% endif %}
     </ul>
+  {% endif %}
 
-  {% elif user.groups.all.0.name == "SchoolClub" or user.groups.all.0.name == "SchoolDepartment" %}
+  {% if user.groups.all.0.name == "SchoolClub" or user.groups.all.0.name == "SchoolDepartment" %}
     <h3 class="purple-underline">{{ user.groups.all.0.name }} Dashboard</h3>
 
-    <!-- Create Buttons -->
     <div class="mb-3 d-flex gap-2">
-      {% if user.groups.all.0.name == "SchoolClub" %}
-        <a href="{% url 'create_event' %}" class="btn btn-sm btn-schoolclub">➕ Create Event</a>
-        <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-schoolclub">➕ Create Announcement</a>
-      {% else %}
-        <a href="{% url 'create_event' %}" class="btn btn-sm btn-schooldepartment">➕ Create Event</a>
-        <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-schooldepartment">➕ Create Announcement</a>
-      {% endif %}
+      <a href="{% url 'create_event' %}" class="btn btn-sm btn-theme-blue">➕ Create Event</a>
+      <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-theme-blue">➕ Create Announcement</a>
     </div>
 
     <h5>Created Events</h5>
@@ -151,10 +215,10 @@
             <small>{{ event.date|date:"F j, Y, g:i a" }}</small>
           </div>
           <div class="d-flex gap-2">
-            <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
             <form method="post" action="{% url 'delete_event' event.id %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+              <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
             </form>
           </div>
         </li>
@@ -172,10 +236,10 @@
             <small>{{ announcement.created_at|date:"F j, Y" }}</small>
           </div>
           <div class="d-flex gap-2">
-            <a href="{% url 'edit_announcement' announcement.id %}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <a href="{% url 'edit_announcement' announcement.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
             <form method="post" action="{% url 'delete_announcement' announcement.id %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+              <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
             </form>
           </div>
         </li>

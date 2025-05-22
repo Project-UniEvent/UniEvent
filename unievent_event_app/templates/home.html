@@ -65,8 +65,8 @@
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
-    <form class="d-flex mx-auto w-50">
-      <input class="form-control me-2" type="search" placeholder="Search...">
+    <form method="get" action="{% url 'search' %}" class="d-flex mx-auto w-50">
+      <input name="q" class="form-control me-2" type="search" placeholder="Search...">
       <button class="btn btn-outline-light" type="submit">🔍</button>
     </form>
     <div class="d-flex align-items-center">
@@ -136,29 +136,31 @@
   <h4 class="mt-5 mb-3 purple-underline">Recommended Events</h4>
   <div class="scrolling-wrapper">
     {% for event in all_events %}
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">{{ event.title }}</h5>
-          <p class="card-text">{{ event.description|truncatewords:20 }}</p>
-          <p class="text-muted">{{ event.start_datetime|date:"F j, Y, g:i a" }}</p>
+      {% if event.start_datetime > now %}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{ event.title }}</h5>
+            <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+            <p class="text-muted">{{ event.start_datetime|date:"F j, Y, g:i a" }}</p>
 
-          {% if user.is_authenticated %}
-            {% if event.id in event_ids %}
-              <form action="{% url 'register_event' event.id %}" method="get">
-                <input type="hidden" name="unregister" value="1">
-                <input type="hidden" name="next" value="/">
-                <button type="submit" class="btn btn-sm btn-unregister">Unregister</button>
-              </form>
-            {% else %}
-              <form action="{% url 'register_event' event.id %}" method="get">
-                <input type="hidden" name="register" value="1">
-                <input type="hidden" name="next" value="/">
-                <button type="submit" class="btn btn-sm btn-register">Register</button>
-              </form>
+            {% if user.is_authenticated %}
+              {% if event.id in event_ids %}
+                <form action="{% url 'register_event' event.id %}" method="get">
+                  <input type="hidden" name="unregister" value="1">
+                  <input type="hidden" name="next" value="/">
+                  <button type="submit" class="btn btn-sm btn-unregister">Unregister</button>
+                </form>
+              {% else %}
+                <form action="{% url 'register_event' event.id %}" method="get">
+                  <input type="hidden" name="register" value="1">
+                  <input type="hidden" name="next" value="/">
+                  <button type="submit" class="btn btn-sm btn-register">Register</button>
+                </form>
+              {% endif %}
             {% endif %}
-          {% endif %}
+          </div>
         </div>
-      </div>
+      {% endif %}
     {% empty %}
       <p>No recommended events at the moment.</p>
     {% endfor %}

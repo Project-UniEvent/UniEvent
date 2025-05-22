@@ -33,10 +33,19 @@ urlpatterns = [
 
     # Profile Page
     path('profile/', views.profile_view, name='profile'),
+    path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+
+    # Add User Page (Yeni)
+    path('add_user/', views.add_user_view, name='add_user'),
 
     # Login & Logout
     path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/accounts/login/?logout=1'), name='logout'),
+    path('user/<int:user_id>/edit/', views.edit_user, name='edit_user'),
+
+
+    # Search Page
+    path('search/', views.search_view, name='search'),
 ]
 
 if settings.DEBUG:
