@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Create Announcement - UniEvent</title>
+  <title>Add User - UniEvent</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .navbar-custom {
@@ -26,10 +26,18 @@
       background-color: #8DCDEE;
       color: #000;
       border: none;
+      margin-top: 12px;
     }
     .btn-submit:hover {
       background-color: #6cb9db;
       color: #000;
+    }
+    input, select {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
@@ -43,7 +51,7 @@
       UniEvent
     </a>
     <form method="get" action="{% url 'search' %}" class="d-flex mx-auto w-50">
-      <input name="q" class="form-control me-2" type="search" placeholder="Search..." required>
+      <input name="q" class="form-control me-2" type="search" placeholder="Search...">
       <button class="btn btn-outline-light" type="submit">🔍</button>
     </form>
     <div class="d-flex align-items-center">
@@ -53,7 +61,7 @@
         <span class="text-white fw-bold">{{ user.username }}</span>
       {% else %}
         <a href="/accounts/login/" class="me-3 text-white">👤</a>
-        <a class="btn btn-outline-light" href="/accounts/login/">Log in</a>
+        <a class="btn btn-outline-light btn-sm" href="/accounts/login/">Log in</a>
       {% endif %}
     </div>
   </div>
@@ -61,22 +69,29 @@
 
 <!-- Page Content -->
 <div class="container mt-5" style="max-width: 700px;">
-  <h2 class="purple-underline">Create Announcement</h2>
+  <h2 class="purple-underline">Add New User</h2>
 
-  <form method="post">
+  <!-- Role Selection -->
+  <form method="get" class="mb-4">
+    <label for="role" class="form-label">Select Role</label>
+    <select name="role" id="role" onchange="this.form.submit()">
+      <option value="student" {% if selected_role == "student" %}selected{% endif %}>Student</option>
+      <option value="club" {% if selected_role == "club" %}selected{% endif %}>Student Club</option>
+      <option value="department" {% if selected_role == "department" %}selected{% endif %}>School Department</option>
+    </select>
+  </form>
+
+  <!-- Dynamic Form -->
+  <form method="post" novalidate>
     {% csrf_token %}
-
-    <div class="mb-3">
-      <label class="form-label">Title</label>
-      <input type="text" name="title" class="form-control" maxlength="40" required>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Content</label>
-      <textarea name="content" class="form-control" rows="5" required></textarea>
-    </div>
-
-    <button type="submit" class="btn btn-submit">➕ Publish Announcement</button>
+    {% for field in form %}
+      <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}
+        <div class="text-danger small">{{ field.errors|join:", " }}</div>
+      {% endif %}
+    {% endfor %}
+    <button type="submit" class="btn btn-submit">➕ Create {{ selected_role|title }}</button>
   </form>
 
   <a href="{% url 'profile' %}" class="btn btn-outline-secondary mt-3">← Back to Profile</a>

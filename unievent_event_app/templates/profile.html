@@ -2,42 +2,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - UniEvent</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .navbar-custom {
-            background-color: #8274FF !important;
-        }
-        .navbar-custom .navbar-brand {
-            color: white !important;
-            margin-left: 10px;
-        }
-        .navbar-custom .navbar-brand img {
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>User Profile - UniEvent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .navbar-custom { background-color: #8274FF !important; }
+    .navbar-custom .navbar-brand { color: white !important; margin-left: 10px; }
+    .navbar-custom .navbar-brand img { border-radius: 8px; }
+
+    .purple-underline {
+      border-bottom: 3px solid #8274FF;
+      display: inline-block;
+      padding-bottom: 4px;
+      margin-bottom: 20px;
+    }
+
+    .btn-theme-blue {
+      background-color: #8DCDEE;
+      color: #000;
+      border: none;
+    }
+    .btn-theme-blue:hover {
+      background-color: #8DCDEE;
+      color: #000;
+    }
+
+    .btn-unregister {
+      background-color: #c34444;
+      color: white;
+      border: none;
+    }
+    .btn-unregister:hover {
+      background-color: #a83838;
+      color: white;
+    }
+
+    .event-link {
+      text-decoration: none;
+      font-weight: bold;
+      color: #333;
+    }
+    .event-link:hover {
+      color: #5e51d6;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Top Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
       <img src="{% static 'images/unievent_logo.jpg' %}" alt="Logo" width="32" height="32" class="me-2">
       UniEvent
     </a>
-    <form class="d-flex mx-auto w-50">
-      <input class="form-control me-2" type="search" placeholder="Search...">
+    <form method="get" action="{% url 'search' %}" class="d-flex mx-auto w-50">
+      <input name="q" class="form-control me-2" type="search" placeholder="Search..." required>
       <button class="btn btn-outline-light" type="submit">🔍</button>
     </form>
     <div class="d-flex align-items-center">
-      <a href="#" class="me-3 text-white">🔔</a>  <!-- 🔔 Notification simgesi -->
-
+      <a href="#" class="me-3 text-white">🔔</a>
       {% if user.is_authenticated %}
         <a href="/profile/" class="me-3 text-white">👤</a>
-        <span class="text-white fw-bold">{{ user.username }}</span>  <!-- sadece yazı -->
+        <span class="text-white fw-bold">{{ user.username }}</span>
       {% else %}
         <a href="/accounts/login/" class="me-3 text-white">👤</a>
         <a class="btn btn-outline-light" href="/accounts/login/">Log in</a>
@@ -46,45 +73,181 @@
   </div>
 </nav>
 
-<!-- Profile Content -->
 <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">My Profile</h2>
-        {% if user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-          {% csrf_token %}
-          <button class="btn btn-danger" type="submit">Log Out</button>
-        </form>
-        {% endif %}
+  <div class="d-flex justify-content-end mb-3">
+    <form action="{% url 'logout' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Log Out</button>
+    </form>
+  </div>
+
+  {% if user.is_superuser %}
+    <h2 class="purple-underline">Admin Dashboard</h2>
+
+    <div class="mb-4">
+      <a href="{% url 'add_user' %}" class="btn btn-theme-blue">➕ Add User</a>
     </div>
 
-    <!-- Followed Clubs -->
-    <h4>Followed Clubs</h4>
+    <h5>Students</h5>
     <ul class="list-group mb-4">
-        {% if user.schoolclub %}
-            <li class="list-group-item">{{ user.schoolclub.club_name }}</li>
-        {% else %}
-            <li class="list-group-item text-muted">You are not following any clubs.</li>
-        {% endif %}
+      {% for student in all_students %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ student.username }}</strong><br>
+            <small>{{ student.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' student.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' student.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ student.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No students.</li>
+      {% endfor %}
     </ul>
 
-    <!-- Registered Events -->
-    <h4>Registered Events</h4>
-    <ul class="list-group">
-        {% if registrations %}
-            {% for reg in registrations %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                        <strong>{{ reg.event.title }}</strong><br>
-                        <small>{{ reg.event.date|date:"F j, Y, g:i a" }}</small>
-                    </span>
-                    <span class="badge bg-primary rounded-pill">Registered</span>
-                </li>
-            {% endfor %}
-        {% else %}
-            <li class="list-group-item text-muted">You haven't registered for any events.</li>
-        {% endif %}
+    <h5>Student Clubs</h5>
+    <ul class="list-group mb-4">
+      {% for club in all_clubs %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ club.username }}</strong><br>
+            <small>{{ club.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' club.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' club.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ club.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No clubs.</li>
+      {% endfor %}
     </ul>
+
+    <h5>School Departments</h5>
+    <ul class="list-group mb-4">
+      {% for dept in all_departments %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ dept.username }}</strong><br>
+            <small>{{ dept.email }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_user' dept.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_user' dept.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Are you sure you want to delete {{ dept.username }}?');">
+                🗑️ Delete
+              </button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No departments.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if user.groups.all.0.name == "Student" %}
+    <h2 class="purple-underline">My Profile</h2>
+
+    <h4>Registered Events</h4>
+    <ul class="list-group mb-4">
+      {% if registrations %}
+        {% for reg in registrations %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'register_event' reg.event.id %}" class="event-link">
+            {{ reg.event.title }}
+          </a>
+          <form method="get" action="{% url 'register_event' reg.event.id %}" class="ms-3">
+            <input type="hidden" name="unregister" value="1">
+            <button type="submit" class="btn btn-sm btn-unregister">Unregister</button>
+          </form>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="list-group-item text-muted">You haven't registered for any events.</li>
+      {% endif %}
+    </ul>
+
+    <h4 class="mt-4">Followed Clubs</h4>
+    <ul class="list-group mb-4">
+      {% if followed_clubs %}
+        {% for club in followed_clubs %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ club.username }}
+          <a href="{% url 'unfollow_club' club.id %}" class="btn btn-sm btn-unregister">Leave Club</a>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="list-group-item text-muted">You are not following any clubs.</li>
+      {% endif %}
+    </ul>
+  {% endif %}
+
+  {% if user.groups.all.0.name == "SchoolClub" or user.groups.all.0.name == "SchoolDepartment" %}
+    <h3 class="purple-underline">{{ user.groups.all.0.name }} Dashboard</h3>
+
+    <div class="mb-3 d-flex gap-2">
+      <a href="{% url 'create_event' %}" class="btn btn-sm btn-theme-blue">➕ Create Event</a>
+      <a href="{% url 'create_announcement' %}" class="btn btn-sm btn-theme-blue">➕ Create Announcement</a>
+    </div>
+
+    <h5>Created Events</h5>
+    <ul class="list-group mb-4">
+      {% for event in user.event_set.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ event.title }}</strong><br>
+            <small>{{ event.date|date:"F j, Y, g:i a" }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_event' event.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No events created yet.</li>
+      {% endfor %}
+    </ul>
+
+    <h5>Created Announcements</h5>
+    <ul class="list-group">
+      {% for announcement in user.announcement_set.all %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ announcement.title }}</strong><br>
+            <small>{{ announcement.created_at|date:"F j, Y" }}</small>
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'edit_announcement' announcement.id %}" class="btn btn-sm btn-warning">✏️ Edit</a>
+            <form method="post" action="{% url 'delete_announcement' announcement.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+            </form>
+          </div>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No announcements created yet.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
